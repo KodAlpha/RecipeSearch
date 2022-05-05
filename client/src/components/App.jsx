@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import axios from 'axios';
 import DietRestrict from './Options/DietRestrictions.jsx';
 import Intolerances from './Options/Intolerances.jsx';
 import Sort from './Options/SortBy.jsx';
@@ -17,62 +18,71 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      diet: [],
-      Intolerance: [],
+      diet: '',
+      Intolerance: '',
       sort: '',
       objarr: [],
     };
     this.handleDChange = this.handleDChange.bind(this);
     this.handleIChange = this.handleIChange.bind(this);
     this.handleSChange = this.handleSChange.bind(this);
-    this.objmap = this.objmap.bind(this);
+    this.handleCClick = this.handleCClick.bind(this);
   }
 
   componentDidMount() {
-    this.setState({objarr: obj.recipes});
+    axios.get('/random')
+      .then(({ data }) => {
+        this.setState({ objarr: data.results });
+      })
+      .catch((err) => {
+        console.error(err);
+        alert('problem with request');
+      });
   }
 
   handleDChange(e) {
-    this.setState({ diet: e ? e.value : [] });
+    this.setState({ diet: e ? e.value : '' });
   }
 
   handleIChange(e) {
-    this.setState({Intolerance: e ? e.map(x => x.value) : [] });
+    this.setState({ Intolerance: e ? e.map(x => x.value) : '' });
   }
 
   handleSChange(e) {
-    if (!e) {
-      this.setState({sort: ''});
-    } else {
-      console.log(e.value);
-      this.setState({sort: e.value});
-    }
+    this.setState({ sort: e ? e.value : '' });
   }
 
-  objmap(e) {
+  handleCClick(e) {
     e.preventDefault();
-    obj.recipes.map(x => console.log(x.title));
+    const { diet, sort } = this.state;
+    const Intolerance = this.state.Intolerance.join();
+    axios.get('/specified', {
+      params: {
+        diet: diet,
+        intolerance: Intolerance,
+        sort: sort,
+      }
+    })
+      .then(({ data }) => {
+        this.setState({ objarr: data.results });
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   }
 
   render() {
     const { objarr } = this.state;
     return (
       <>
-        <Title>hello</Title>
-        <button>home</button>
-        <button>Favorites</button>
+        <Title>Recipe Search</Title>
+        {/* <button onClick={this.hanc}>home</button>
+        <button>Favorites</button> */}
         <DietRestrict onchange={this.handleDChange} />
         <Intolerances onchange={this.handleIChange} />
         <Sort onchange={this.handleSChange} />
-        <button onClick={this.objmap}>Apply Changes</button>
-        {objarr.map((recipeinfo) => {
-        return   (
-            <RecipeCard info={recipeinfo} />
-          )
-        }
-        )}
-        <div></div>
-        <div></div>
+        <button onClick={this.handleCClick}>Apply Changes</button>
+        {objarr.map((recipeinfo) => <RecipeCard info={recipeinfo} />)}
       </>
     );
   }

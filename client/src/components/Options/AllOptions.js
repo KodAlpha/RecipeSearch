@@ -27,6 +27,7 @@ const sortBy = [
   { value: 'popularity', label: 'Popularity' },
   { value: 'healthiness', label: 'Healthiness' },
   { value: 'time', label: 'Time Taken' },
+  { value: 'random', label: 'Random' },
 ];
 
 export {
